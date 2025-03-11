@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Memories</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            padding: 20px;
+            background: url('https://source.unsplash.com/1920x1080/?stars,night') no-repeat center center/cover;
+            transition: 0.5s;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .memory-card {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+            text-align: left;
+            position: relative;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .memory-card img, .memory-card video {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #d63031;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .dark-mode {
+            background-color: #222 !important;
+            color: white;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>📂 Your Saved Memories</h2>
+        <input type="text" class="search-bar" placeholder="🔍 Search memories..." onkeyup="searchMemories()">
+        <button onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
+        <button onclick="clearAllMemories()" style="background: #e17055;">🗑️ Clear All</button>
+        <div id="memories-container"></div>
+        <button onclick="window.location.href='memory.html'">⬅️ Back</button>
+    </div>
+
+    <script>
+        function loadMemories() {
+            let memories = JSON.parse(localStorage.getItem('memories')) || [];
+            let container = document.getElementById('memories-container');
+            container.innerHTML = '';
+
+            if (memories.length === 0) {
+                container.innerHTML = "<p>No memories saved yet.</p>";
+                return;
+            }
+
+            memories.forEach((memory, index) => {
+                let memoryElement = document.createElement('div');
+                memoryElement.classList.add('memory-card');
+
+                let mediaContent = '';
+                if (memory.media) {
+                    if (memory.mediaType.startsWith("image")) {
+                        mediaContent = `<img src="${memory.media}" alt="Memory Image">`;
+                    } else if (memory.mediaType.startsWith("video")) {
+                        mediaContent = `<video controls><source src="${memory.media}" type="${memory.mediaType}"></video>`;
+                    }
+                }
+
+                memoryElement.innerHTML = `
+                    <p><strong>📅 ${memory.timestamp}</strong></p>
+                    <p>${memory.text}</p>
+                    ${mediaContent}
+                    <button class="delete-btn" onclick="deleteMemory(${index})">🗑️</button>
+                `;
+                container.appendChild(memoryElement);
+            });
+        }
+
+        function deleteMemory(index) {
+            let memories = JSON.parse(localStorage.getItem('memories')) || [];
+            memories.splice(index, 1);
+            localStorage.setItem('memories', JSON.stringify(memories));
+            loadMemories();
+        }
+
+        function clearAllMemories() {
+            if (confirm("Are you sure you want to delete all memories?")) {
+                localStorage.removeItem('memories');
+                loadMemories();
+            }
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
+        }
+
+        function searchMemories() {
+            let query = document.querySelector('.search-bar').value.toLowerCase();
+            let memories = document.querySelectorAll('.memory-card');
+
+            memories.forEach(card => {
+                let text = card.innerText.toLowerCase();
+                card.style.display = text.includes(query) ? 'block' : 'none';
+            });
+        }
+
+        loadMemories();
+    </script>
+
+</body>
+</html>
